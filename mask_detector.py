@@ -7,8 +7,8 @@ import sys
 
 # face detect model
 # face_detector = dlib.get_frontal_face_detector()
-face_detector = cv2.dnn.readNet('models/deploy.prototxt', \
-                                'models/res10_300x300_ssd_iter_140000.caffemodel')
+face_detector = cv2.dnn.readNetFromCaffe('models/deploy.prototxt',\
+                                         'models/res10_300x300_ssd_iter_140000_fp16.caffemodel')
 
 # mask detect model
 mask_detect_model = load_model("models\mask_detector.model")
@@ -27,13 +27,27 @@ while True:
 
     if not ret:
         break
+    
+    # blob object
+    blob = cv2.dnn.blobFromImage(frame, scalefactor=1., size=(300, 300), mean=(104., 177., 123.))
+    face_detector.setInput(blob)
+    out = face_detector.forward()
 
     # detect faces
-    faces = face_detector(frame)
+    detect = out[0, 0, :, :]
+    (h,w) = frame.shape[:2]
 
-    for face in faces:
+    for i in range(detect.shape[0]):
 
-        x1,y1,x2,y2 = face.left(), face.top(), face.right(), face.bottom()
+        confidence = detect[i, 2]
+
+        if confidence < 0.5:
+            break
+
+        x1 = int(detect[i, 3] * w)
+        y1 = int(detect[i, 4] * h)
+        x2 = int(detect[i, 5] * w)
+        y2 = int(detect[i, 6] * h)
 
         face_img = frame[y1:y2, x1:x2].copy()
 
