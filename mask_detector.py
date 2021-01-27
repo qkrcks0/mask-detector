@@ -76,7 +76,7 @@ def camera():
 
 def images():
 
-    for img_path in imgs_list:
+    for i, img_path in enumerate(imgs_list):
 
         img = cv2.imread(img_path)
         
@@ -85,12 +85,13 @@ def images():
 
         img = detect(img)
 
+        cv2.imwrite(f'result/result{i}.jpg', img)
+
         cv2.imshow("frame", img)
         if cv2.waitKey() == ord(" "):
             continue
 
 # face detect model
-# face_detector = dlib.get_frontal_face_detector()
 face_detector = cv2.dnn.readNetFromCaffe('models/deploy.prototxt',\
                                          'models/res10_300x300_ssd_iter_140000_fp16.caffemodel')
 
